@@ -11,6 +11,7 @@ import (
 
 func Provider() *schema.Provider {
 	return &schema.Provider{
+		// schema contains the APITOKEN that will be sent to Pingdmo
 		Schema: map[string]*schema.Schema{
 			"api_token": {
 				Type:     schema.TypeString,
@@ -18,16 +19,21 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			// the name of the resource
+			// the name of the resource in the tf file
 			"pingdom_check": resourcePingdomCheck(),
 		},
-		DataSourcesMap: map[string]*schema.Resource{
-		},
+		DataSourcesMap: map[string]*schema.Resource{},
+		// configurefunc is used to return  a client
 		ConfigureFunc: providerConfigure,
 	}
 }
 
+type PingdomConfig struct {
+	APIToken	string
+}
+
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
+	// struct PingdomConfig
 	config := PingdomConfig{
 		APIToken: d.Get("api_token").(string),
 	}
@@ -39,14 +45,12 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	return client, nil
 }
 
-type PingdomConfig struct {
-	APIToken	string
-}
-
 func (c *PingdomConfig) getPingdomClient() (*pingdom.Client, error) {
+	// checks the env variable
 	if v := os.Getenv("PINGDOM_API_TOKEN"); v != "" {
 		c.APIToken = v
 	}
+	// Create a new Pingdom client with the API token
 	client, _ := pingdom.NewClientWithConfig(pingdom.ClientConfig{
 		APIToken: c.APIToken,
 	})

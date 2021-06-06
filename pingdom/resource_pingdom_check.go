@@ -2,13 +2,16 @@ package pingdom
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/russellcardullo/go-pingdom/pingdom"
 )
 
+// resource function -> returns Resource
 func resourcePingdomCheck() *schema.Resource {
+	// imlementing functions and providing the required schema for the resource
 	return &schema.Resource{
 		Create: resourcePingdomCheckCreate,
 		Read: resourcePingdomCheckRead,
@@ -79,6 +82,14 @@ func resourcePingdomCheckRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourcePingdomCheckDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*pingdom.Client)
+	// Atoi = convert string/ascii to int
+	id, _ := strconv.Atoi(d.Id())
+	log.Printf("[INFO] Deleting pingdom Check: %v", id)
+	_, err := client.Checks.Delete(id)
+	if err != nil {
+		return fmt.Errorf("error deleting check: %s", err)
+	}
 	return nil
 }
 
